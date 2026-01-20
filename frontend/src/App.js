@@ -1,82 +1,81 @@
 import { useState } from "react";
+import "./App.css";
 
 function App() {
-  const [form, setForm] = useState({
-    toEmail: "",
-    subject: "",
-    body: "",
-    scheduledAt: ""
-  });
-
+  const [toEmail, setToEmail] = useState("");
+  const [subject, setSubject] = useState("");
+  const [body, setBody] = useState("");
+  const [scheduledAt, setScheduledAt] = useState("");
   const [message, setMessage] = useState("");
-
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMessage("Scheduling...");
 
     try {
       const res = await fetch(
-        "https://reachinbox-email-scheduler-uvd8.onrender.com/api/emails/schedule",
+        `${process.env.REACT_APP_API_URL}/api/emails/schedule`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(form)
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            toEmail,
+            subject,
+            body,
+            scheduledAt,
+          }),
         }
       );
 
       const data = await res.json();
 
-      if (!res.ok) {
-        throw new Error(data.message || "Error");
+      if (res.ok) {
+        setMessage("✅ Email scheduled successfully");
+      } else {
+        setMessage(data.message || "❌ Error scheduling email");
       }
-
-      setMessage("✅ Email scheduled successfully");
     } catch (err) {
-      setMessage("❌ " + err.message);
+      console.error(err);
+      setMessage("❌ Backend not reachable");
     }
   };
 
   return (
-    <div style={{ padding: "40px", maxWidth: "500px", margin: "auto" }}>
+    <div style={{ maxWidth: "500px", margin: "40px auto" }}>
       <h2>ReachInbox Email Scheduler</h2>
 
       <form onSubmit={handleSubmit}>
         <input
-          name="toEmail"
+          type="email"
           placeholder="To Email"
-          value={form.toEmail}
-          onChange={handleChange}
+          value={toEmail}
+          onChange={(e) => setToEmail(e.target.value)}
           required
         />
         <br /><br />
 
         <input
-          name="subject"
+          type="text"
           placeholder="Subject"
-          value={form.subject}
-          onChange={handleChange}
+          value={subject}
+          onChange={(e) => setSubject(e.target.value)}
           required
         />
         <br /><br />
 
         <textarea
-          name="body"
           placeholder="Email Body"
-          value={form.body}
-          onChange={handleChange}
+          value={body}
+          onChange={(e) => setBody(e.target.value)}
           required
         />
         <br /><br />
 
         <input
           type="datetime-local"
-          name="scheduledAt"
-          value={form.scheduledAt}
-          onChange={handleChange}
+          value={scheduledAt}
+          onChange={(e) => setScheduledAt(e.target.value)}
           required
         />
         <br /><br />
